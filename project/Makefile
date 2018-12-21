@@ -2,11 +2,11 @@
 HOST_EXE  = run.exe
 HOST_SRCS = ./host/main.cpp ../common/ocl_util.cpp ../common/timer.cpp
 HOST_OBJS = $(HOST_SRCS:%.cpp=%.o)
-HOST_INCS = ../common
+HOST_INCS = ../common 
 HOST_DEBUG =
 
 #if you are loading images from OpenCV interfaces please set to 1
-USE_OPENCV = 0
+USE_OPENCV = 1
 
 #set source and target for device
 #supported vendors are xilinx, altera, amd
@@ -14,7 +14,8 @@ VENDOR = altera
 #select the host archecture  x86|arm32
 PLATFORM = x86
 #optinal flows are hw|hw_emu|sw_emu
-FLOW        = sw_emu
+# FLOW        = sw_emu
+FLOW        = hw
 ifeq ($(VENDOR),xilinx)
 KERNEL_SRCS = ./device/conv_pipe_xilinx.cl
 else
@@ -29,6 +30,7 @@ CU_NUM = 1
 MAX_MEM_PORT = 0
 MEM_PORT_SIZE = 512
 
+
 #select the device binary name
 ifeq ($(VENDOR),xilinx)
 DEV_EXE = $(KERNEL_NAME).xclbin
@@ -37,6 +39,8 @@ DEV_EXE = $(KERNEL_NAME).aocx
 else ifeq ($(VENDOR),amd)
 DEV_EXE =
 endif
+
+
 
 #host compiler options
 CROSS-COMPILE = arm-linux-gnueabihf-
@@ -105,9 +109,13 @@ endif
 else ifeq ($(VENDOR),altera)
 OCC = aoc
 ifeq ($(FLOW),sw_emu)
-OCCFLAGS = -v --report -march=emulator -I device/RTL -L device/RTL -l rtl_lib.aoclib 
+HOST_EXE  = run_emu.exe
+# OCCFLAGS = -v --report -march=emulator -I device/RTL -L device/RTL
+OCCFLAGS = -v -report -march=emulator -I device/RTL -L device/RTL -l rtl_lib.aoclib 
+DEV_EXE = $(KERNEL_NAME)_emu.aocx
 else ifeq ($(FLOW),hw)
-OCCFLAGS = -v --report --profile -I device/RTL -L device/RTL -l rtl_lib.aoclib 
+OCCFLAGS = -v -report -profile -I device/RTL -L device/RTL -l rtl_lib.aoclib 
+# OCCFLAGS = -v -report -profile -I device/RTL $INTELFPGAOCLSDKROOT/include/kernel_headers -L device/RTL -l rtl_lib.aoclib 
 endif
 #amd
 else ifeq ($(VENDOR),amd)
@@ -119,6 +127,7 @@ endif
 ifeq ($(KERNEL_DEBUG),1)
 	OCCFLAGS += -g
 endif
+
 
 .PHONY: all
 all: host fpga

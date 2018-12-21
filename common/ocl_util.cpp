@@ -215,9 +215,10 @@ bool fileExists(const char *file_name) {
 // Load the opencl source or binary files into memory
 size_t load_file_to_memory(const char *filename, char **result)
 { 
+  printf("Inside load_file_to_memory");
   size_t size = 0;
   FILE *f;
-  
+
 #ifdef _WIN32
   if (fopen_s(&f, filename, "rb") != 0) {
 	  *result = NULL;
@@ -237,6 +238,7 @@ size_t load_file_to_memory(const char *filename, char **result)
   fseek(f, 0, SEEK_END);
   size = ftell(f);
   fseek(f, 0, SEEK_SET);
+
   *result = (char *)malloc(size+1);
   if (size != fread(*result, sizeof(char), size, f)) 
   { 
@@ -395,6 +397,7 @@ cl_program createProgramFromFile(cl_context context, const char *kernel_file_nam
   unsigned char *kernelbinary;
   printf("\nLoading kernel/binary from file %s\n", kernel_file_name);
   size_t binary_size = load_file_to_memory(kernel_file_name, (char **) &kernelbinary);
+
   if ((int)binary_size < 0) {
     checkError(CL_INVALID_PROGRAM, "Failed to load kernel/binary file");
   }
